@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String                 @id @default(uuid())
+  name                 String?
+  email                String                 @unique
+  password             String
+  savingScore          Int                    @default(0)
+  points               Int                    @default(0)
+  totalCoins           Int                    @default(0)
+  streak               Int                    @default(0)
+  lastActive           DateTime?
+  transactions         Transaction[]
+  goals                Goal[]
+  challenges           Challenge[]
+  achievements         Achievement[]
+  budgets              Budget[]
+  recurringTransactions RecurringTransaction[]
+}
+
+model Transaction {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  type      String   // "INCOME" or "EXPENSE"
+  amount    Float
+  category  String
+  note      String?
+  date      DateTime @default(now())
+  context   String   @default("PERSONAL") // "PERSONAL" or "BUSINESS"
+}
+
+model Goal {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  name         String
+  targetAmount Float
+  savedAmount  Float    @default(0)
+  deadline     DateTime?
+}
+
+model Challenge {
+  id       String   @id @default(uuid())
+  userId   String
+  user     User     @relation(fields: [userId], references: [id])
+  name     String
+  type     String // "DAILY", "WEEKLY", "MONTHLY"
+  status   String // "ACTIVE", "COMPLETED", "FAILED"
+  progress Float    @default(0)
+}
+
+model Achievement {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  badgeName  String
+  unlockedAt DateTime @default(now())
+}
+
+model Budget {
+  id           String @id @default(uuid())
+  userId       String
+  user         User   @relation(fields: [userId], references: [id])
+  category     String
+  monthlyLimit Float
+  month        String // "2026-03"
+}
+
+model RecurringTransaction {
+  id        String  @id @default(uuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id])
+  type      String  // "INCOME" or "EXPENSE"
+  amount    Float
+  category  String
+  context   String  @default("PERSONAL")
+  note      String?
+  frequency String  @default("MONTHLY") // "MONTHLY" or "WEEKLY"
+  lastRun   DateTime?
+}
